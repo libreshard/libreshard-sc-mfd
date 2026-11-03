@@ -6,7 +6,7 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
-## [3.0.0] - Unreleased
+## [3.0.0] - 2026-11-03
 
 First public release, for LibreShard 0.1.0.
 
