@@ -1,0 +1,543 @@
+/* Themes by ship maker. Each block also applies to the cards of the theme picker (they carry their
+   own data-theme), which is why RSI is declared explicitly besides :root. */
+:root, [data-theme="rsi"] {
+  --primary: #00d8ff;
+  --bg-dark: #001522;
+  --bg-panel: rgba(0, 25, 45, 0.6);
+  --border: rgba(0, 216, 255, 0.4);
+  --text: #cceeff;
+}
+:root {
+  --font: 'Bahnschrift SemiCondensed', 'Bahnschrift', 'Roboto Condensed', sans-serif-condensed, 'Arial Narrow', system-ui, sans-serif;
+  --mono: Consolas, 'Roboto Mono', 'Courier New', monospace;
+  --warn: #ffcc00;
+  --danger: #ff3b3b;
+}
+
+[data-theme="aegis"]        { --primary: #6f9e76; --bg-dark: #0f1712; --bg-panel: rgba(20, 40, 25, 0.6);  --border: rgba(111, 158, 118, 0.5); --text: #c3d6c7; }
+[data-theme="anvil"]        { --primary: #ff8c00; --bg-dark: #1c1102; --bg-panel: rgba(50, 25, 5, 0.6);   --border: rgba(255, 140, 0, 0.5);   --text: #ffe0b2; }
+[data-theme="aopoa"]        { --primary: #8cd23c; --bg-dark: #0d1606; --bg-panel: rgba(30, 50, 10, 0.6);  --border: rgba(140, 210, 60, 0.5);  --text: #dff5c4; }
+[data-theme="argo"]         { --primary: #ff9900; --bg-dark: #221500; --bg-panel: rgba(60, 40, 0, 0.6);   --border: rgba(255, 153, 0, 0.5);   --text: #ffd699; }
+[data-theme="banu"]         { --primary: #d4b04a; --bg-dark: #1a1406; --bg-panel: rgba(55, 45, 15, 0.6);  --border: rgba(212, 176, 74, 0.5);  --text: #f2e3b5; }
+[data-theme="consolidated"] { --primary: #00ffcc; --bg-dark: #001a1a; --bg-panel: rgba(0, 50, 50, 0.6);   --border: rgba(0, 255, 204, 0.5);   --text: #b3ffff; }
+[data-theme="crusader"]     { --primary: #b3d9ff; --bg-dark: #131a22; --bg-panel: rgba(30, 45, 60, 0.6);  --border: rgba(179, 217, 255, 0.4); --text: #e6f2ff; }
+[data-theme="drake"]        { --primary: #a8b88f; --bg-dark: #1a1c18; --bg-panel: rgba(40, 45, 30, 0.6);  --border: rgba(168, 184, 143, 0.5); --text: #d4d9cc; }
+[data-theme="esperia"]      { --primary: #ff4a3d; --bg-dark: #1c0806; --bg-panel: rgba(55, 15, 12, 0.6);  --border: rgba(255, 74, 61, 0.5);   --text: #ffd4cf; }
+[data-theme="gatac"]        { --primary: #b77cf0; --bg-dark: #140b1f; --bg-panel: rgba(40, 20, 60, 0.6);  --border: rgba(183, 124, 240, 0.5); --text: #ead9fb; }
+[data-theme="kruger"]       { --primary: #d7dde4; --bg-dark: #101317; --bg-panel: rgba(35, 40, 48, 0.6);  --border: rgba(215, 221, 228, 0.4); --text: #eef1f4; }
+[data-theme="misc"]         { --primary: #f0c419; --bg-dark: #0c1418; --bg-panel: rgba(25, 40, 45, 0.6);  --border: rgba(240, 196, 25, 0.5);  --text: #e3edf0; }
+[data-theme="origin"]       { --primary: #ffffff; --bg-dark: #0a1128; --bg-panel: rgba(20, 30, 60, 0.6);  --border: rgba(255, 255, 255, 0.4); --text: #ffffff; }
+[data-theme="tumbril"]      { --primary: #c9a96a; --bg-dark: #15130c; --bg-panel: rgba(45, 40, 25, 0.6);  --border: rgba(201, 169, 106, 0.5); --text: #ece2cc; }
+
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; } /* No accidental text selection */
+[hidden] { display: none !important; }
+
+html { background: var(--bg-dark); }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+body {
+  display: flex; flex-direction: column;
+  color: var(--text); font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+button { font-family: var(--font); }
+
+/* Background: a faint grid and a glow in the theme's color, all CSS (no images) */
+body::before, body::after { content: ''; position: fixed; inset: 0; pointer-events: none; }
+body::before {
+  z-index: -2;
+  background:
+    linear-gradient(color-mix(in srgb, var(--primary) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(ellipse at 25% 15%, color-mix(in srgb, var(--primary) 22%, var(--bg-dark)), var(--bg-dark) 70%);
+}
+body::after {
+  z-index: -1;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 70% 40%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 65%),
+    color-mix(in srgb, var(--bg-dark) 84%, transparent);
+}
+
+/* Bevelled corners (top left and bottom right), like the frames of the game's MFDs. The "border" is
+   the element's background, and the fill is ::before, clipped the same way 1px inside. */
+.cut, .screen, .mfd-btn, .tab-btn {
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+
+/* ---------- TOP BEZEL (keeps clear of LibreShard's 64 px floating button) ---------- */
+#topbar {
+  flex: none; display: flex; align-items: center; gap: 8px;
+  height: 68px; padding: 0 12px 0 72px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg-dark) 90%, transparent), color-mix(in srgb, var(--bg-dark) 55%, transparent));
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary) 20%, transparent), 0 6px 20px rgba(0,0,0,0.4);
+}
+
+#tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  --c: 8px; flex: none;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px;
+  min-height: 50px; padding: 4px 14px 6px;
+  background: rgba(0,0,0,0.35); border: 0; color: var(--text); cursor: pointer;
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary) 25%, transparent);
+  transition: background 0.15s, color 0.15s;
+}
+.tab-n { font: 0.62rem var(--mono); opacity: 0.55; letter-spacing: 1px; }
+.tab-l { font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; }
+.tab-btn.active {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 8%, transparent), color-mix(in srgb, var(--primary) 26%, transparent));
+  color: var(--primary); text-shadow: 0 0 8px color-mix(in srgb, var(--primary) 60%, transparent);
+  box-shadow: inset 0 -3px 0 var(--primary);
+}
+.tab-btn.active .tab-n { opacity: 0.9; }
+
+#theme-btn {
+  flex: none; display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 6px 12px;
+  background: rgba(0,0,0,0.35); color: var(--primary);
+  border: 1px solid var(--border); border-radius: 2px;
+  font: bold 0.85rem var(--font); letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+}
+#theme-btn:active, .icon-btn:active { background: color-mix(in srgb, var(--primary) 25%, transparent); }
+.icon-btn {
+  flex: none; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; margin-left: auto;
+  background: rgba(0,0,0,0.35); color: var(--primary); border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+}
+/* Theme swatch: the maker's three-letter code on its color, in place of a logo */
+.swatch {
+  --c: 6px; flex: none; display: grid; place-items: center; min-width: 3.2em; height: 1.9em; padding: 0 0.4em;
+  background: var(--primary); color: var(--bg-dark);
+  font: 800 0.8rem var(--font); letter-spacing: 1.5px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+
+/* ---------- CONTENT ---------- */
+#content { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+#pages { position: relative; }
+.page { display: none; columns: 18rem; column-gap: 14px; }
+.page.active { display: block; animation: hologramFade 0.25s ease-out; }
+
+/* ---------- SCREENS ---------- */
+.screen {
+  --c: 14px; position: relative; break-inside: avoid; margin-bottom: 14px;
+  padding: 10px 12px 12px;
+  background: color-mix(in srgb, var(--primary) 38%, transparent);
+}
+.screen::before {
+  content: ''; position: absolute; inset: 1px; z-index: 0; clip-path: inherit;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 40px),
+    color-mix(in srgb, var(--bg-dark) 86%, transparent);
+}
+.screen > * { position: relative; z-index: 1; }
+
+.screen-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.screen-head .code {
+  --c: 4px; padding: 2px 6px 1px; background: var(--primary); color: var(--bg-dark);
+  font: bold 0.62rem var(--mono); letter-spacing: 1px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.screen-head h3 { margin: 0; color: var(--primary); font-size: 0.82rem; font-weight: 700; letter-spacing: 3px; white-space: nowrap; }
+/* A line with scale marks to the right of the title */
+.screen-head::after {
+  content: ''; flex: 1; height: 6px; min-width: 20px;
+  background:
+    linear-gradient(var(--border), var(--border)) left center / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 8px) right center / 40% 6px no-repeat;
+}
+
+.screen-body { display: grid; gap: 6px; }
+.screen-note { margin: 8px 0 0; font-size: 0.68rem; letter-spacing: 0.5px; opacity: 0.55; }
+
+/* ---------- BUTTONS ---------- */
+.mfd-btn {
+  --c: 9px; --edge: color-mix(in srgb, var(--primary) 45%, transparent); --ink: var(--primary);
+  position: relative; min-width: 0;
+  display: grid; grid-template-areas: "icon txt" "icon meta"; grid-template-columns: auto 1fr; grid-template-rows: 1fr auto;
+  align-items: center; column-gap: 8px; row-gap: 2px;
+  min-height: 3.6rem; padding: 6px 8px 5px 12px;
+  background: var(--edge); border: 0; color: var(--text); text-align: left; cursor: pointer;
+  touch-action: manipulation;
+}
+.mfd-btn::before {
+  content: ''; position: absolute; inset: 1px; z-index: 0; clip-path: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.25)), color-mix(in srgb, var(--bg-dark) 80%, black);
+  transition: background 0.08s;
+}
+/* Side indicator, like the light next to a bezel button */
+.mfd-btn::after {
+  content: ''; position: absolute; left: 4px; top: 30%; bottom: 30%; width: 2px; z-index: 1;
+  background: var(--ink); opacity: 0.35; transition: opacity 0.08s;
+}
+.mfd-btn > * { position: relative; z-index: 1; }
+.mfd-btn:active::before { background: var(--ink); }
+.mfd-btn:active { color: var(--bg-dark); }
+.mfd-btn:active::after { opacity: 0; }
+.mfd-btn:active { filter: drop-shadow(0 0 10px var(--ink)); }
+
+/* Masked icon: takes the button's color */
+.i {
+  display: block; background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+}
+.mfd-btn .i { grid-area: icon; width: 1.9rem; height: 1.9rem; color: var(--ink); }
+.mfd-btn:active .i { color: var(--bg-dark); }
+
+.txt { grid-area: txt; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lbl { font-size: 0.85rem; font-weight: 600; letter-spacing: 1.2px; line-height: 1.1; text-transform: uppercase; }
+.sub { font-size: 0.58rem; letter-spacing: 1px; opacity: 0.8; }
+
+.meta { grid-area: meta; display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+.kb { font: 0.62rem var(--mono); letter-spacing: 0.5px; opacity: 0.6; white-space: nowrap; }
+.meta .tag { margin-right: auto; }
+
+/* Three-column screens: icon above the label, everything centered */
+.dense .mfd-btn {
+  grid-template-areas: "icon" "txt" "meta"; grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
+  justify-items: center; text-align: center; padding: 7px 6px 5px; min-height: 4rem;
+}
+.dense .mfd-btn .i { width: 1.65rem; height: 1.65rem; }
+.dense .lbl { font-size: 0.78rem; letter-spacing: 1px; }
+.dense .meta { justify-content: center; flex-wrap: wrap; }
+.dense .meta .tag { margin-right: 0; }
+.dense .mfd-btn::after { display: none; }
+.tag {
+  font-size: 0.52rem; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+  padding: 1px 4px; border: 1px solid currentColor; color: var(--ink); opacity: 0.85;
+}
+.mfd-btn:active .tag, .mfd-btn:active .kb { color: var(--bg-dark); }
+
+/* Hold buttons: the gesture mustn't turn into a scroll (that would release the key early) */
+.is-hold { touch-action: none; }
+
+.tone-warn { --edge: color-mix(in srgb, var(--warn) 55%, transparent); --ink: var(--warn); }
+.tone-danger { --edge: color-mix(in srgb, var(--danger) 55%, transparent); --ink: var(--danger); }
+.tone-warn .lbl { color: var(--warn); }
+.tone-danger .lbl { color: var(--danger); }
+
+/* Guarded buttons: hazard stripes until armed */
+.guard {
+  --c: 10px; padding-left: 14px;
+  background: repeating-linear-gradient(-45deg, var(--ink) 0 7px, rgba(0,0,0,0.85) 7px 14px);
+}
+.guard::before { inset: 3px; }
+.guard .sub { color: var(--ink); }
+.guard.armed { animation: armed 0.7s ease-in-out infinite alternate; }
+.guard.armed::before { background: color-mix(in srgb, var(--ink) 22%, var(--bg-dark)); }
+
+.cell-empty { min-height: 3.6rem; }
+
+/* ---------- DIALOGS AND THEME PICKER ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 64px 16px 16px; /* keeps LibreShard's floating button corner clear */
+  background: rgba(0,0,0,0.6);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  animation: fadeIn 0.15s ease-out;
+}
+.modal-box {
+  width: min(960px, 100%); max-height: 100%; overflow-y: auto;
+  padding: 20px; border: 1px solid var(--border); border-top: 2px solid var(--primary); border-radius: 4px;
+  background: color-mix(in srgb, var(--bg-dark) 92%, transparent);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px color-mix(in srgb, var(--primary) 20%, transparent);
+  animation: hologramFade 0.25s ease-out;
+}
+.modal-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.modal-head h2 { flex: 1; margin: 0; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; color: var(--primary); }
+.modal-close {
+  display: grid; place-items: center; width: 48px; height: 48px; padding: 0;
+  background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+}
+
+#theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding-top: 6px; }
+.maker {
+  position: relative; display: grid; grid-template-rows: 1fr auto; gap: 10px; justify-items: center;
+  min-height: 140px; padding: 16px 12px 12px;
+  background: linear-gradient(160deg, var(--bg-panel), var(--bg-dark));
+  border: 1px solid var(--border); border-radius: 2px;
+  color: var(--primary); font: bold 0.8rem var(--font); letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; transition: transform 0.1s, box-shadow 0.15s;
+}
+.maker .swatch { align-self: center; min-width: 5.2rem; height: 3.6rem; font-size: 1.35rem; letter-spacing: 3px; --c: 12px; }
+.maker:active { transform: scale(0.97); }
+.maker[aria-pressed="true"] {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--primary) 45%, transparent), inset 0 0 24px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+.maker[aria-pressed="true"]::after {
+  content: '✓'; position: absolute; top: -9px; right: -9px;
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--primary); color: var(--bg-dark); font-size: 0.8rem;
+}
+
+/* ---------- SETTINGS ---------- */
+.settings-box { width: min(560px, 100%); }
+.set-group { margin-top: 6px; }
+.set-group + .set-group { margin-top: 18px; }
+.set-group h3 {
+  margin: 0 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  color: var(--primary); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+}
+.set-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 0; }
+.set-row + .set-row { border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent); }
+.set-label { flex: 1; display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; }
+.set-label small { font-size: 0.75rem; opacity: 0.6; line-height: 1.35; }
+.set-text { margin: 6px 0; font-size: 0.82rem; line-height: 1.45; opacity: 0.85; }
+ol.set-text { padding-left: 1.4em; }
+.set-text code { font: 0.75rem var(--mono); color: var(--primary); overflow-wrap: anywhere; }
+.set-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.set-btn {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px;
+  background: rgba(0,0,0,0.35); color: var(--primary); border: 1px solid var(--border); border-radius: 2px;
+  font: 600 0.8rem var(--font); letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+}
+.set-btn:active { background: color-mix(in srgb, var(--primary) 25%, transparent); }
+
+.segmented { display: flex; border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+.segmented button {
+  min-width: 52px; min-height: 44px; padding: 0 10px; border: 0; cursor: pointer;
+  background: rgba(0,0,0,0.35); color: var(--text); font-family: var(--font); font-weight: 700;
+}
+.segmented button + button { border-left: 1px solid var(--border); }
+.segmented button[aria-checked="true"] { background: var(--primary); color: var(--bg-dark); }
+
+/* Switch: the real checkbox is hidden but stays accessible */
+.toggle { cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.switch {
+  flex: none; position: relative; width: 56px; height: 30px; border-radius: 15px;
+  background: rgba(0,0,0,0.5); border: 1px solid var(--border); transition: background 0.15s;
+}
+.switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--text); opacity: 0.6; transition: transform 0.15s, background 0.15s, opacity 0.15s;
+}
+.toggle input:checked + .switch { background: color-mix(in srgb, var(--primary) 35%, transparent); border-color: var(--primary); }
+.toggle input:checked + .switch::after { transform: translateX(26px); background: var(--primary); opacity: 1; }
+.toggle input:focus-visible + .switch { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ---------- EDIT MODE (moving sections) ---------- */
+.grip { display: none; }
+.editing .grip {
+  display: block; width: 14px; height: 18px; flex: none; opacity: 0.8;
+  background: radial-gradient(circle, var(--primary) 1.5px, transparent 2px) 0 0 / 7px 6px;
+}
+.editing .screen-head { cursor: grab; touch-action: none; padding: 6px 0; margin: -6px 0 4px; }
+.editing .screen-body, .editing .screen-note { pointer-events: none; opacity: 0.35; }
+.editing .screen { animation: editPulse 1.4s ease-in-out infinite alternate; }
+.screen.dragging { z-index: 60; cursor: grabbing; animation: none; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.6)) drop-shadow(0 0 10px var(--primary)); }
+.screen-ph {
+  break-inside: avoid; margin-bottom: 14px;
+  border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); opacity: 0.7;
+}
+.editing #content { padding-bottom: 80px; }
+
+#edit-bar {
+  position: fixed; z-index: 70; left: 50%; bottom: 16px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px; padding: 8px 8px 8px 18px; max-width: calc(100% - 32px);
+  background: color-mix(in srgb, var(--bg-dark) 92%, transparent); border: 1px solid var(--primary);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 30%, transparent);
+  font-size: 0.8rem; letter-spacing: 1px;
+}
+#edit-bar b { color: var(--primary); }
+#edit-done {
+  min-height: 44px; padding: 0 18px; border: 0; cursor: pointer;
+  background: var(--primary); color: var(--bg-dark); font: 700 0.85rem var(--font); letter-spacing: 2px;
+}
+
+.fan-note { margin: 18px 0 0; font-size: 0.7rem; line-height: 1.4; opacity: 0.55; text-align: center; }
+
+@keyframes hologramFade {
+  from { opacity: 0; transform: scale(0.99); filter: blur(2px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes editPulse { from { opacity: 1; } to { opacity: 0.82; } }
+@keyframes armed { from { filter: drop-shadow(0 0 2px var(--ink)); } to { filter: drop-shadow(0 0 12px var(--ink)); } }
+
+/* Portrait or narrow: tighter tabs */
+@media (max-width: 900px) {
+  .tab-btn { padding: 4px 9px 6px; }
+  .tab-l { font-size: 0.8rem; letter-spacing: 1px; }
+  #theme-name { display: none; }
+}
+
+/* =====================================================================================
+   MINIMAL MODE (body.compact): one screen per tab, no scrolling on a landscape tablet.
+   The grid stretches (rows and columns in fr) and each button's content scales with container
+   units (cqmin / cqh), so the same layout works from 1024×768 to 1920×1200.
+   ===================================================================================== */
+#view-btn { margin-left: auto; }
+#settings-btn { margin-left: 0; }
+#view-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--primary) 26%, transparent);
+  box-shadow: inset 0 0 0 1px var(--primary), 0 0 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+body.compact .page { display: none !important; }
+body:not(.compact) .cpage { display: none !important; }
+body.compact #content { padding: 24px 20px 18px; }
+body.compact #pages { height: 100%; }
+
+.cpage {
+  display: none; gap: 14px;
+  height: 100%; min-height: calc(var(--rows) * 5.5rem); /* in portrait it doesn't squash: the page scrolls */
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+}
+.cpage.active { display: grid; animation: hologramFade 0.25s ease-out; }
+
+/* Zone: a faint panel with marked corners that groups buttons. It reaches halfway into the gap
+   between buttons, so its label sits in that gap without covering anything. */
+.czone {
+  --b: color-mix(in srgb, var(--primary) 75%, transparent); --len: 14px; --w: 2px;
+  position: relative; margin: -7px; pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+  background:
+    linear-gradient(var(--b), var(--b)) left top / var(--len) var(--w),
+    linear-gradient(var(--b), var(--b)) left top / var(--w) var(--len),
+    linear-gradient(var(--b), var(--b)) right top / var(--len) var(--w),
+    linear-gradient(var(--b), var(--b)) right top / var(--w) var(--len),
+    linear-gradient(var(--b), var(--b)) left bottom / var(--len) var(--w),
+    linear-gradient(var(--b), var(--b)) left bottom / var(--w) var(--len),
+    linear-gradient(var(--b), var(--b)) right bottom / var(--len) var(--w),
+    linear-gradient(var(--b), var(--b)) right bottom / var(--w) var(--len),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, transparent), color-mix(in srgb, var(--primary) 2%, transparent) 70%);
+  background-origin: border-box; background-repeat: no-repeat;
+}
+.czone-l {
+  position: absolute; top: -1px; left: 20px; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 7px;
+  padding-right: 7px; background: var(--bg-dark); white-space: nowrap; line-height: 1;
+}
+.czone-l b {
+  padding: 2px 5px 1px; background: var(--primary); color: var(--bg-dark);
+  font: 700 0.56rem var(--mono); letter-spacing: 1px;
+}
+.czone-l span { color: var(--primary); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.22em; opacity: 0.75; }
+
+/* ---------- Shapes ---------- */
+/* All of them come from --shape (clip-path). The 1px border is still the button's background and
+   ::before is clipped with the same shape (clip-path: inherit), as in the full view. */
+.cbtn, .shape-bevel {
+  --c: clamp(6px, 1.1vmin, 12px);
+  --shape: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.shape-oct {
+  --c: clamp(10px, 1.8vmin, 20px);
+  --shape: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
+}
+.shape-hex {
+  --c: clamp(12px, 2.4vmin, 28px);
+  --shape: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, var(--c) 100%, 0 50%);
+}
+.shape-pill { --shape: inset(0 round 999px); }
+/* A circle the size of the cell's short side (a stretched oval looks like a bug) */
+.shape-orb  { --shape: circle(closest-side); }
+.shape-up    { --c: clamp(14px, 3vmin, 34px); --shape: polygon(50% 0, 100% var(--c), 100% 100%, 0 100%, 0 var(--c)); }
+.shape-down  { --c: clamp(14px, 3vmin, 34px); --shape: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), 50% 100%, 0 calc(100% - var(--c))); }
+.shape-left  { --c: clamp(14px, 3vmin, 34px); --shape: polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%); }
+.shape-right { --c: clamp(14px, 3vmin, 34px); --shape: polygon(0 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, 0 100%); }
+
+/* ---------- Button ---------- */
+/* --glow is the strength of the top glow: higher on big buttons and on hover. It changes through
+   the variable (not by redefining ::before) so it doesn't override the :active or .guard.armed fill. */
+.cbtn {
+  --edge: color-mix(in srgb, var(--ink) 32%, transparent); --glow: 9%;
+  clip-path: var(--shape);
+  container-type: size; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.6vmin; padding: 0.6vmin 1.2vmin; text-align: center;
+  transition: transform 0.1s ease, filter 0.12s ease;
+}
+/* Each shape's notch (an arrow's tip, the hexagon's points) gets no text */
+.cbtn.shape-hex   { padding-inline: calc(var(--c) * 0.85); }
+.cbtn.shape-pill  { padding-inline: 5%; }
+.cbtn.shape-orb   { padding-inline: 12%; }
+.cbtn.shape-up    { padding-top: calc(var(--c) * 0.7); }
+.cbtn.shape-down  { padding-bottom: calc(var(--c) * 0.7); }
+.cbtn.shape-left  { padding-left: calc(var(--c) * 0.7); }
+.cbtn.shape-right { padding-right: calc(var(--c) * 0.7); }
+.cbtn::before {
+  background:
+    radial-gradient(90% 75% at 50% 0%, color-mix(in srgb, var(--ink) var(--glow), transparent), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.3)),
+    color-mix(in srgb, var(--bg-dark) 88%, black);
+}
+/* Indicator: a glowing stroke centered on the top edge */
+.cbtn::after {
+  left: 50%; top: 1px; bottom: auto; transform: translateX(-50%);
+  width: 24%; height: 2px; opacity: 0.6;
+  box-shadow: 0 0 8px var(--ink);
+}
+.cbtn.shape-up::after { display: none; } /* the tip is at the top */
+/* Circles get an inner ring instead of the indicator, like a push button */
+.cbtn.shape-orb::after {
+  inset: 0; width: auto; height: auto; transform: none; box-shadow: none; opacity: 1;
+  background: radial-gradient(circle closest-side,
+    transparent calc(100% - 8px), color-mix(in srgb, var(--ink) 30%, transparent) calc(100% - 7px),
+    color-mix(in srgb, var(--ink) 30%, transparent) calc(100% - 6px), transparent calc(100% - 5px));
+}
+.cbtn:focus-visible {
+  z-index: 3; outline: none;
+  filter: drop-shadow(0 0 3px var(--ink)) drop-shadow(0 0 8px color-mix(in srgb, var(--ink) 45%, transparent));
+}
+.cbtn:active { transform: scale(0.975); filter: drop-shadow(0 0 8px var(--ink)); }
+@media (hover: hover) {
+  .cbtn:hover { --glow: 20%; --edge: color-mix(in srgb, var(--ink) 55%, transparent); }
+}
+
+.cbtn .i {
+  width: clamp(1.2rem, 34cqmin, 4.5rem); height: clamp(1.2rem, 34cqmin, 4.5rem); flex: none;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ink) 40%, transparent));
+}
+.cbtn .txt { align-items: center; gap: 0.3em; }
+.cbtn .lbl { font-size: clamp(0.7rem, min(12cqmin, 12.5cqw), 1.4rem); font-weight: 700; letter-spacing: 0.07em; overflow-wrap: break-word; }
+.cbtn .sub { font-size: clamp(0.55rem, 6cqmin, 0.75rem); font-weight: 700; letter-spacing: 0.1em; }
+.cbtn .meta { flex: none; justify-content: center; }
+.cbtn .meta .tag {
+  margin: 0; padding: 0.15em 0.55em; border-color: color-mix(in srgb, var(--ink) 50%, transparent);
+  background: color-mix(in srgb, var(--ink) 10%, transparent); opacity: 1;
+  font-size: clamp(0.5rem, 5.5cqmin, 0.66rem); letter-spacing: 0.12em;
+}
+
+.cbtn.xs { padding-inline: 0.6vmin; }
+.cbtn.xs .lbl { font-size: clamp(0.66rem, min(13.5cqw, 15cqh), 0.95rem); letter-spacing: 0.04em; }
+.cbtn.xs .i { width: clamp(1.1rem, 30cqmin, 2.6rem); height: clamp(1.1rem, 30cqmin, 2.6rem); }
+
+/* One row tall: icon and label side by side; the hold tag goes below, on its own line */
+.cbtn.wide { flex-direction: row; flex-wrap: wrap; align-content: center; gap: 0.6vmin 1.2vmin; }
+.cbtn.wide .i { width: clamp(1.2rem, 34cqh, 2.4rem); height: clamp(1.2rem, 34cqh, 2.4rem); }
+.cbtn.wide .txt { flex: 0 1 auto; min-width: 0; }
+.cbtn.wide .lbl { font-size: clamp(0.7rem, min(17cqh, 8.5cqw), 1.2rem); }
+.cbtn.wide .meta { flex-basis: 100%; }
+
+/* Big buttons: the tab's main actions */
+.cbtn.big { --edge: color-mix(in srgb, var(--ink) 62%, transparent); --glow: 17%; }
+.cbtn.big::after { width: 34%; height: 3px; opacity: 0.85; }
+.cbtn.big.shape-orb::after { width: auto; height: auto; }
+.cbtn.big .i { width: clamp(2rem, 30cqmin, 6rem); height: clamp(2rem, 30cqmin, 6rem); }
+.cbtn.big .lbl { font-size: clamp(0.9rem, min(11cqmin, 10.5cqw), 2rem); letter-spacing: 0.09em; }
+.cbtn.big .sub { font-size: clamp(0.6rem, 4.5cqmin, 0.9rem); }
+.cbtn.big .meta .tag { font-size: clamp(0.56rem, 4cqmin, 0.8rem); }
+@media (hover: hover) {
+  .cbtn.big:hover { --glow: 28%; --edge: var(--ink); }
+}
+
+/* Guarded: the stripes are the frame; inside, the button's normal fill */
+.cbtn.guard::after { display: none; }
+
+/* 1024 px tablets: slightly tighter tabs so all 7 fit next to the three buttons on the right */
+@media (max-width: 1120px) {
+  .tab-btn { padding: 4px 10px 6px; }
+  .tab-l { font-size: 0.85rem; letter-spacing: 1px; }
+  #theme-name { display: none; }
+}
+@media (max-width: 760px) {
+  .cpage { min-height: calc(var(--rows) * 8rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cpage.active { animation: none; }
+}

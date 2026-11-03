@@ -1,0 +1,5 @@
+# Every text file is checked out with LF on every system, so the generated files (icons.css, the
+# profile, the manifest's keys) compare the same everywhere
+* text=auto eol=lf
+
+*.png binary

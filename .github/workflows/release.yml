@@ -1,0 +1,53 @@
+name: Release
+
+# Pushing a tag like v3.0.0 packages the shard as a .libreshard file and creates a DRAFT GitHub
+# release with it. Nothing is public until a maintainer reviews the draft and publishes it.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package and draft release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: The tag matches the manifest, and generated files are up to date
+        run: |
+          v="$(node -p "require('./manifest.json').version")"
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME doesn't match manifest version $v"; exit 1; }
+          node tools/build-icons.js --check
+          node tools/check-compact.js
+          node tools/build-profile.js
+          git diff --exit-code -- LibreShard_MFD.xml manifest.json
+      - name: Package
+        run: |
+          mkdir out
+          name="sc-mfd-${GITHUB_REF_NAME#v}.libreshard"
+          # Only what the shard needs at run time, plus its license (no tools, docs or workflows)
+          zip -X -q "out/$name" manifest.json index.html strings.js layout.js compact.js script.js \
+            style.css icons.css LibreShard_MFD.xml LICENSE NOTICE
+          unzip -l "out/$name"
+          cd out && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt && cd ..
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {on=1; next} on && /^## \[/ {exit} on {print}' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
+      - name: Create the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/* \
+            --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "SC MFD ${GITHUB_REF_NAME#v}" --notes-file notes.md

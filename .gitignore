@@ -1,0 +1,10 @@
+node_modules/
+out/
+*.log
+*.zip
+*.libreshard
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Icons, minimal mode, profile and manifest keys are up to date
+        run: |
+          node tools/build-icons.js --check
+          node tools/check-compact.js
+          node tools/build-profile.js
+          git diff --exit-code -- LibreShard_MFD.xml manifest.json || { echo "::error::Run node tools/build-profile.js and commit the result"; exit 1; }
+      - name: Manifest is valid JSON with the required fields
+        run: node -e "const m=require('./manifest.json'); for (const f of ['id','name','version','minAppVersion']) if (!m[f]) throw new Error('missing ' + f)"
+
+  dco:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Every commit has a Signed-off-by line
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          for c in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            if ! git show -s --format=%B "$c" | grep -q '^Signed-off-by: '; then
+              echo "::error::Commit $(git show -s --format='%h %s' "$c") has no Signed-off-by line (git commit -s)."
+              missing=1
+            fi
+          done
+          exit $missing
