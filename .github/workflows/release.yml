@@ -37,7 +37,7 @@ jobs:
           mkdir out
           name="sc-mfd-${GITHUB_REF_NAME#v}.libreshard"
           # Only what the shard needs at run time, plus its license (no tools, docs or workflows)
-          zip -X -q "out/$name" manifest.json index.html strings.js layout.js compact.js script.js \
+          zip -X -q "out/$name" manifest.json index.html boot.js boot.css strings.js layout.js compact.js script.js \
             style.css icons.css LibreShard_MFD.xml LICENSE NOTICE
           unzip -l "out/$name"
           cd out && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt && cd ..

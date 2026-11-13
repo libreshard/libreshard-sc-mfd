@@ -113,10 +113,21 @@ body::after {
 }
 
 /* ---------- CONTENT ---------- */
-#content { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-#pages { position: relative; }
-.page { display: none; columns: 18rem; column-gap: 14px; }
-.page.active { display: block; animation: hologramFade 0.25s ease-out; }
+#content { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+#pages { position: absolute; inset: 0; }
+/* Every tab is laid out once and stays laid out: they're stacked, each one scrolls on its own, and
+   the ones not showing are only invisible. With display: none, every switch laid the whole page out
+   again (the columns layout can't be cached), which on a tablet was a visible pause. will-change
+   gives each tab its own layer, so its fade-in doesn't repaint it. */
+.page {
+  position: absolute; inset: 0; overflow-y: auto; padding: 14px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  visibility: hidden; will-change: opacity, transform;
+}
+.page.active { visibility: visible; animation: hologramFade 0.25s ease-out; }
+.cols { columns: 18rem; column-gap: 14px; }
+/* A dragged section is position: fixed, which a will-change: transform parent would capture */
+.editing .page { will-change: auto; }
 
 /* ---------- SCREENS ---------- */
 .screen {
@@ -332,7 +343,7 @@ ol.set-text { padding-left: 1.4em; }
   break-inside: avoid; margin-bottom: 14px;
   border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); opacity: 0.7;
 }
-.editing #content { padding-bottom: 80px; }
+.editing .page { padding-bottom: 80px; }
 
 #edit-bar {
   position: fixed; z-index: 70; left: 50%; bottom: 16px; transform: translateX(-50%);
@@ -378,16 +389,18 @@ ol.set-text { padding-left: 1.4em; }
 
 body.compact .page { display: none !important; }
 body:not(.compact) .cpage { display: none !important; }
-body.compact #content { padding: 24px 20px 18px; }
-body.compact #pages { height: 100%; }
+body.compact #pages { overflow-y: auto; }
 
+/* Like the full view's tabs: stacked on the same spot, laid out once, only the active one visible */
 .cpage {
-  display: none; gap: 14px;
-  height: 100%; min-height: calc(var(--rows) * 5.5rem); /* in portrait it doesn't squash: the page scrolls */
+  position: absolute; inset: 24px 20px 18px;
+  display: grid; gap: 14px;
+  min-height: calc(var(--rows) * 5.5rem); /* in portrait it doesn't squash: the page scrolls */
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  visibility: hidden; will-change: opacity, transform;
 }
-.cpage.active { display: grid; animation: hologramFade 0.25s ease-out; }
+.cpage.active { visibility: visible; animation: hologramFade 0.25s ease-out; }
 
 /* Zone: a faint panel with marked corners that groups buttons. It reaches halfway into the gap
    between buttons, so its label sits in that gap without covering anything. */

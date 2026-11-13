@@ -198,22 +198,28 @@ MODES.forEach((mode, n) => {
   });
   tabs.append(tab);
 
+  // Empty for now: start() builds the pages once the saved settings are read. The page is the tab's
+  // own scroll area and .cols holds the sections in columns (style.css)
   const page = el('div', 'page');
   page.id = 'page-' + mode.id;
   page.setAttribute('role', 'tabpanel');
+  page.append(el('div', 'cols'));
   pages.append(page);
-  buildPage(mode);
-
-  const compact = buildCompact(mode);
-  if (compact) pages.append(compact);
 });
+const colsOf = (id) => pageOf(id).firstElementChild;
 
 // Draws the mode's sections in the saved order; any not in it go last
 function buildPage(mode) {
   const want = Array.isArray(settings.order[mode.id]) ? settings.order[mode.id] : [];
   const rank = (s) => { const i = want.indexOf(s.title); return i < 0 ? want.length : i; };
   const screens = mode.screens.map((s, i) => ({ s, i })).sort((a, b) => rank(a.s) - rank(b.s) || a.i - b.i);
-  pageOf(mode.id).replaceChildren(...screens.map(({ s }) => makeScreen(s)));
+  colsOf(mode.id).replaceChildren(...screens.map(({ s }) => makeScreen(s)));
+}
+
+// Each tab scrolls on its own; switching or changing the view starts at the top
+function scrollToTop() {
+  pageOf(currentTab).scrollTop = 0;
+  pages.scrollTop = 0;
 }
 
 let currentTab = MODES[0].id;
@@ -226,7 +232,7 @@ function showPage(id) {
     tb.setAttribute('aria-selected', String(on));
   });
   pages.querySelectorAll('.page, .cpage').forEach((p) => p.classList.toggle('active', p.id === 'page-' + id || p.id === 'cpage-' + id));
-  $('content').scrollTop = 0;
+  scrollToTop();
 }
 showPage(currentTab);
 
@@ -236,7 +242,7 @@ function applyView() {
   document.body.classList.toggle('compact', compact);
   $('view-btn').setAttribute('aria-pressed', String(compact));
   $('compact-toggle').checked = compact;
-  $('content').scrollTop = 0;
+  scrollToTop();
 }
 function setView(view) {
   if (view === 'compact' && editing) setEditing(false); // moving sections only exists in the full view
@@ -261,8 +267,8 @@ function startDrag(e, screen) {
   if (!editing || e.button > 0) return;
   e.preventDefault();
   const head = e.currentTarget;
-  const page = screen.parentElement;
-  const content = $('content');
+  const page = screen.parentElement; // the tab's .cols
+  const content = page.parentElement; // the tab's scroll area (.page)
   const r = screen.getBoundingClientRect();
   const dx = e.clientX - r.left, dy = e.clientY - r.top;
 
@@ -298,7 +304,7 @@ function startDrag(e, screen) {
     ph.replaceWith(screen);
     screen.removeAttribute('style');
     screen.classList.remove('dragging');
-    settings.order[page.id.slice(5)] = [...page.children].map((c) => c.dataset.id);
+    settings.order[content.id.slice(5)] = [...page.children].map((c) => c.dataset.id);
     save();
   };
   head.addEventListener('pointermove', move);
@@ -413,26 +419,100 @@ $('reset-all').addEventListener('click', () => {
   save();
 });
 
-/* ---------- Startup ---------- */
-function applySettings() {
+/* ---------- Startup (behind the loading screen, boot.js) ---------- */
+const Boot = window.Boot || { part() {}, done() {}, finish() {}, styles: Promise.resolve() };
+// A frame, or 100 ms if frames are paused (a hidden iframe gets no requestAnimationFrame)
+const nextFrame = () => new Promise((resolve) => { requestAnimationFrame(() => resolve()); setTimeout(resolve, 100); });
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Images to have decoded before the MFD shows (none here: this shard draws everything with CSS)
+const PRELOAD = [];
+
+// shard-api.js is injected after this script: Shard exists from DOMContentLoaded on
+async function loadSaved() {
+  if (document.readyState === 'loading') await new Promise((resolve) => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+  if (!window.Shard || !Shard.load) return;
+  const data = await Promise.race([Shard.load().catch(() => null), wait(2500).then(() => null)]);
+  if (!data || typeof data !== 'object') return;
+  if (typeof data.theme === 'string') settings.theme = data.theme;
+  if (FONT_SCALES.some(([, v]) => v === data.fontScale)) settings.fontScale = data.fontScale;
+  if (typeof data.tab === 'string') settings.tab = data.tab;
+  if (data.view === 'full' || data.view === 'compact') settings.view = data.view;
+  if (data.order && typeof data.order === 'object') settings.order = data.order;
+}
+
+async function preload(srcs) {
+  let n = 0;
+  await Promise.all(srcs.map(async (src) => {
+    const img = new Image();
+    img.src = src;
+    try { await img.decode(); } catch {}
+    n++;
+    Boot.part('assets', n / srcs.length, t('boot.assets', { n, total: srcs.length }));
+  }));
+}
+
+// Draws one icon of each kind behind the loading screen so their masks are decoded before the first
+// tab switch, instead of popping in then
+async function warmIcons() {
+  const names = new Set();
+  for (const mode of MODES) for (const s of mode.screens) for (const b of s.items) if (b && b.i) names.add(b.i);
+  for (const spec of Object.values(window.MFD_COMPACT || {})) for (const it of spec.items) if (it.over && it.over.i) names.add(it.over.i);
+  const box = el('div');
+  box.setAttribute('aria-hidden', 'true');
+  box.style.cssText = 'position:fixed;left:0;top:0;display:flex;flex-wrap:wrap;width:100vw;opacity:0.01;pointer-events:none;';
+  for (const name of names) {
+    const i = el('i', 'i i-' + name);
+    i.style.cssText = 'width:48px;height:48px;';
+    box.append(i);
+  }
+  document.body.append(box);
+  await nextFrame();
+  await nextFrame();
+  box.remove();
+}
+
+async function start() {
+  Boot.part('sync', 0, t('boot.sync'));
+  await loadSaved();
   applyTheme(settings.theme);
   applyFont();
   applyView();
-  MODES.forEach(buildPage);
-  showPage(settings.tab || MODES[0].id);
-}
-applySettings();
+  Boot.done('sync');
 
-// shard-api.js is injected after this script: Shard exists from DOMContentLoaded on
-document.addEventListener('DOMContentLoaded', () => {
-  if (!window.Shard || !Shard.load) return;
-  Shard.load().then((data) => {
-    if (!data || typeof data !== 'object') return;
-    if (typeof data.theme === 'string') settings.theme = data.theme;
-    if (FONT_SCALES.some(([, v]) => v === data.fontScale)) settings.fontScale = data.fontScale;
-    if (typeof data.tab === 'string') settings.tab = data.tab;
-    if (data.view === 'full' || data.view === 'compact') settings.view = data.view;
-    if (data.order && typeof data.order === 'object') settings.order = data.order;
-    applySettings();
-  });
-});
+  // One page per frame, so the bar moves while they're built
+  for (const [n, mode] of MODES.entries()) {
+    Boot.part('pages', n / MODES.length, t('boot.pages', { n: n + 1, total: MODES.length, name: mode.label }));
+    await nextFrame();
+    buildPage(mode);
+    const compact = buildCompact(mode);
+    if (compact) pageOf(mode.id).after(compact);
+  }
+  Boot.done('pages');
+
+  if (PRELOAD.length) await preload(PRELOAD);
+  Boot.done('assets');
+
+  // Shows every tab and both dialogs for a frame behind the loading screen, so the browser lays them
+  // out and draws them now: the hidden tabs keep that layout (style.css) and the first switch is quick
+  await Boot.styles;
+  const dialogs = [$('theme-modal'), $('settings-modal')];
+  const total = MODES.length + dialogs.length + 1;
+  let step = 0;
+  for (const mode of MODES) {
+    Boot.part('warm', step++ / total, t('boot.warm'));
+    showPage(mode.id);
+    await nextFrame();
+  }
+  for (const m of dialogs) {
+    Boot.part('warm', step++ / total);
+    m.hidden = false;
+    await nextFrame();
+    m.hidden = true;
+  }
+  await warmIcons();
+  showPage(settings.tab || MODES[0].id);
+  Boot.done('warm');
+}
+
+start().catch((e) => console.error(e)).finally(() => Boot.finish());

@@ -5,10 +5,39 @@
   <!-- The same CSP LibreShard applies: no network; images only local or data: -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="icons.css">
+  <!-- Only the loading screen's styles block the first paint; the rest load behind it (boot.js) -->
+  <link rel="stylesheet" href="boot.css">
+  <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'" data-boot="css">
+  <link rel="stylesheet" href="icons.css" media="print" onload="this.media='all'" data-boot="icons">
+  <script src="strings.js"></script>
 </head>
 <body>
+
+  <!-- Loading screen: covers the MFD until everything is ready (boot.js) -->
+  <div id="boot" role="progressbar" aria-busy="true" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="SC MFD">
+    <span class="boot-corner tr"></span><span class="boot-corner bl"></span><span class="boot-corner br"></span>
+    <div class="boot-core" aria-hidden="true">
+      <svg class="boot-reticle" viewBox="0 0 200 200">
+        <circle class="r-outer" cx="100" cy="100" r="96" pathLength="100"/>
+        <circle class="r-ticks" cx="100" cy="100" r="88" pathLength="100"/>
+        <circle class="r-arcs" cx="100" cy="100" r="78" pathLength="100"/>
+        <circle class="r-track" cx="100" cy="100" r="68"/>
+        <circle class="r-prog" cx="100" cy="100" r="68" pathLength="100"/>
+      </svg>
+      <svg class="boot-mark" viewBox="0 0 100 100">
+        <path d="M50 6 88 28v44L50 94 12 72V28z" stroke-width="3"/>
+        <path d="M50 20 76 35v30L50 80 24 65V35z" stroke-width="1.5" opacity="0.5"/>
+        <path d="M34 46l16-10 16 10M34 60l16-10 16 10" stroke-width="4"/>
+      </svg>
+    </div>
+    <p class="boot-title" aria-hidden="true">SC MFD</p>
+    <ol class="boot-log" aria-hidden="true"></ol>
+    <div class="boot-bar" aria-hidden="true"><div class="boot-fill"></div></div>
+    <div class="boot-meta" aria-hidden="true"><span class="boot-status"></span><span class="boot-pct">000%</span></div>
+    <span class="boot-tag" aria-hidden="true">LIBRESHARD</span>
+    <span class="boot-tag r" aria-hidden="true">LINK</span>
+  </div>
+  <script src="boot.js"></script>
 
   <!-- Top bezel: the MFD's pages, one per game mode -->
   <nav id="topbar">
@@ -104,7 +133,6 @@
     </div>
   </div>
 
-  <script src="strings.js"></script>
   <script src="layout.js"></script>
   <script src="compact.js"></script>
   <script src="script.js"></script>

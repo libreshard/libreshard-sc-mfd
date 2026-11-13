@@ -6,6 +6,21 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A loading screen in the style of the game's HUD: it shows from the first moment, with the real
+  progress (interface, icons, profile, each page) and the saved maker's color, and fades out when
+  everything is ready. Buttons can't be pressed by accident while it's up.
+
+### Changed
+
+- Faster start: the big stylesheets no longer block the first paint, the saved settings are read
+  before the pages are built, and each page is built once instead of twice. No more flash of the
+  default theme.
+- Switching tabs is instant: every tab is laid out once and kept (each one now scrolls on its own),
+  instead of being laid out again on every switch. The maker picker and the settings are prepared
+  behind the loading screen, so they open at once the first time too.
+
 ## [3.0.0] - 2026-11-03
 
 First public release, for LibreShard 0.1.0.
