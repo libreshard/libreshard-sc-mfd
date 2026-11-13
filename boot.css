@@ -1,0 +1,135 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Loading screen (boot.js). It's the only stylesheet that blocks the first paint, so it's small and
+   doesn't depend on style.css: the theme colors have fallbacks until style.css and the saved theme
+   arrive, and then it takes the maker's color like the rest of the MFD. */
+#boot {
+  --p: var(--primary, #00d8ff);
+  --bg: var(--bg-dark, #001522);
+  --p-dim: color-mix(in srgb, var(--p) 35%, transparent);
+  --mono: Consolas, 'Roboto Mono', 'Courier New', monospace;
+  position: fixed; inset: 0; z-index: 10000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2vmin;
+  padding: 72px 24px 24px; overflow: hidden;
+  color: var(--p); background: var(--bg);
+  font-family: 'Bahnschrift SemiCondensed', 'Bahnschrift', 'Roboto Condensed', sans-serif-condensed, 'Arial Narrow', system-ui, sans-serif;
+  user-select: none; -webkit-user-select: none; cursor: progress; touch-action: none;
+}
+/* Background: a glow in the theme's color, a faint grid and scanlines */
+#boot::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 3px),
+    linear-gradient(color-mix(in srgb, var(--p) 6%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, color-mix(in srgb, var(--p) 6%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--p) 20%, transparent), transparent 62%);
+}
+/* Optional wallpaper (an <img class="boot-bg">): shows up faded once it has loaded */
+#boot .boot-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;
+  opacity: 0; filter: grayscale(0.6) brightness(0.4); transition: opacity 0.8s ease;
+}
+#boot .boot-bg.on { opacity: 0.55; }
+#boot > * { position: relative; }
+
+/* HUD frame corners (the top left one is left out: the viewer's floating button sits there) */
+.boot-corner { position: absolute !important; width: 34px; height: 34px; border: 2px solid var(--p); opacity: 0.7; }
+.boot-corner.tr { top: 16px; right: 16px; border-left: 0; border-bottom: 0; }
+.boot-corner.bl { bottom: 16px; left: 16px; border-right: 0; border-top: 0; }
+.boot-corner.br { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+.boot-tag {
+  position: absolute !important; bottom: 22px; left: 62px;
+  font: 0.7rem var(--mono); letter-spacing: 0.3em; opacity: 0.55;
+}
+.boot-tag.r { left: auto; right: 62px; }
+.boot-tag.r::before {
+  content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%;
+  background: var(--p); box-shadow: 0 0 8px var(--p); animation: bootBlink 1s steps(2) infinite;
+}
+
+/* Reticle: three rings that turn, and the progress arc */
+.boot-core { width: min(38vmin, 300px); aspect-ratio: 1; display: grid; place-items: center; }
+.boot-core > * { grid-area: 1 / 1; }
+.boot-reticle { width: 100%; height: 100%; overflow: visible; }
+.boot-reticle * { fill: none; stroke: var(--p); transform-box: view-box; transform-origin: 100px 100px; }
+/* Each ring has pathLength="100", so these dash patterns repeat a whole number of times (no seam) */
+.boot-reticle .r-outer { stroke-width: 1.2; stroke-dasharray: 0.5 1.5; opacity: 0.6; animation: bootSpin 24s linear infinite; }
+.boot-reticle .r-arcs { stroke-width: 3; stroke-dasharray: 30 8 6 6; opacity: 0.85; animation: bootSpin 9s linear infinite reverse; }
+.boot-reticle .r-ticks { stroke-width: 6; stroke-dasharray: 0.3 2.2; opacity: 0.5; animation: bootSpin 40s linear infinite; }
+.boot-reticle .r-track { stroke-width: 4; opacity: 0.15; }
+.boot-reticle .r-prog {
+  stroke-width: 4; stroke-linecap: butt; stroke-dasharray: 100; stroke-dashoffset: 100;
+  transform: rotate(-90deg); filter: drop-shadow(0 0 4px var(--p));
+}
+/* The emblem in the middle: an <img> or an inline <svg> */
+.boot-mark { width: 46%; max-height: 46%; object-fit: contain; animation: bootPulse 2.4s ease-in-out infinite alternate; }
+svg.boot-mark { fill: none; stroke: var(--p); }
+
+.boot-title { margin: 0; font-size: clamp(1.1rem, 3vmin, 1.7rem); font-weight: 700; letter-spacing: 0.6em; padding-left: 0.6em; }
+
+/* Status log: one line per step, the current one with a blinking cursor */
+.boot-log {
+  list-style: none; margin: 0; padding: 0; width: min(560px, 100%); min-height: 6.2em;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  font: clamp(0.7rem, 1.6vmin, 0.85rem)/1.55 var(--mono); letter-spacing: 0.08em;
+}
+.boot-log li { display: flex; gap: 0.6em; white-space: nowrap; overflow: hidden; color: color-mix(in srgb, var(--p) 75%, white); }
+.boot-log li::before { content: '>'; opacity: 0.6; }
+.boot-log li span { overflow: hidden; text-overflow: ellipsis; }
+/* Dot leaders up to OK */
+.boot-log li.ok::after { content: 'OK'; margin-left: auto; padding-left: 0.6em; color: var(--p); font-weight: 700; }
+.boot-log li.ok span { flex: 1; text-overflow: clip; }
+.boot-log li.ok span::after { content: ' ................................................................'; opacity: 0.35; }
+.boot-log li:not(.ok):last-child::after {
+  content: ''; width: 0.6em; height: 1.1em; align-self: center; background: var(--p);
+  animation: bootBlink 0.9s steps(2) infinite;
+}
+.boot-log li:nth-last-child(n+4) { opacity: 0.45; }
+
+/* Progress bar: bevelled frame, segmented fill */
+.boot-bar {
+  --c: 8px; width: min(560px, 100%); height: 18px; padding: 3px;
+  background: var(--p-dim);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.boot-bar::before {
+  content: ''; position: absolute; inset: 1px; background: var(--bg);
+  clip-path: inherit;
+}
+.boot-fill {
+  position: relative; height: 100%; width: 0;
+  background: var(--p); box-shadow: 0 0 12px var(--p);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+  mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+}
+.boot-meta {
+  width: min(560px, 100%); display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: -1.2vmin;
+}
+.boot-status { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.4em; }
+.boot-status::after { content: '...'; display: inline-block; width: 1.6em; overflow: hidden; vertical-align: bottom; animation: bootDots 1.2s steps(4) infinite; }
+.boot-pct { font: 700 clamp(1.4rem, 4vmin, 2.2rem) var(--mono); letter-spacing: 0.05em; text-shadow: 0 0 10px var(--p-dim); }
+
+/* Exit: the bar flashes, the reticle opens up and the screen fades with a scan sweep */
+#boot::after {
+  content: ''; position: absolute; left: 0; right: 0; top: -10%; height: 8%; pointer-events: none; opacity: 0;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--p) 45%, transparent), transparent);
+}
+#boot.out { animation: bootOut 0.5s ease-in 0.12s forwards; pointer-events: none; }
+#boot.out::after { animation: bootSweep 0.5s ease-in forwards; }
+#boot.out .boot-core { animation: bootOpen 0.5s ease-in forwards; }
+#boot.out .boot-fill { animation: bootFlash 0.2s ease-out 2; }
+#boot.out .boot-status::after { content: none; }
+
+@keyframes bootSpin { to { transform: rotate(360deg); } }
+@keyframes bootBlink { to { visibility: hidden; } }
+@keyframes bootDots { from { width: 0; } to { width: 1.6em; } }
+@keyframes bootPulse { from { opacity: 0.75; } to { opacity: 1; filter: drop-shadow(0 0 8px var(--p-dim)); } }
+@keyframes bootOut { to { opacity: 0; visibility: hidden; } }
+@keyframes bootSweep { from { top: -10%; opacity: 1; } to { top: 105%; opacity: 1; } }
+@keyframes bootOpen { to { transform: scale(1.3); opacity: 0; } }
+@keyframes bootFlash { 50% { background: #fff; box-shadow: 0 0 24px var(--p); } }
+
+@media (prefers-reduced-motion: reduce) {
+  #boot *, #boot::after { animation: none !important; }
+  #boot.out { animation: bootOut 0.3s linear forwards !important; }
+}
