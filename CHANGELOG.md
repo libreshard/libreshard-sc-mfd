@@ -6,6 +6,10 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-13
+
+For LibreShard 0.1.0. The control profile hasn't changed: there's no need to import it again.
+
 ### Added
 
 - A loading screen in the style of the game's HUD: it shows from the first moment, with the real
@@ -38,5 +42,6 @@ First public release, for LibreShard 0.1.0.
 - All material from the game's official fan kit (maker logos, the wallpaper) and the third-party icon
   pack: they can't be redistributed. The background is now drawn with CSS.
 
-[Unreleased]: https://github.com/libreshard/libreshard-sc-mfd/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/libreshard/libreshard-sc-mfd/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/libreshard/libreshard-sc-mfd/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/libreshard/libreshard-sc-mfd/releases/tag/v3.0.0
