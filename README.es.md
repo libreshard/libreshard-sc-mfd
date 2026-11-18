@@ -2,6 +2,13 @@
 
 <p align="center"><a href="README.md">English</a> · <b>Español</b></p>
 
+> [!IMPORTANT]
+> **El SC MFD se mudó** a
+> [libreshard/gallery-shards](https://github.com/libreshard/gallery-shards/tree/main/sc-mfd), con
+> los demás shards del proyecto LibreShard, desde la versión 3.2.0. Instálalo desde la galería de
+> LibreShard (**Shards → Explorar la galería**), y abre ahí los issues y pull requests. Este
+> repositorio está archivado: sus releases, hasta la 3.1.0, siguen disponibles.
+
 Una pantalla multifunción (MFD), al estilo de una cabina, para el juego espacial SC (4.x) en tu tablet:
 un shard de [LibreShard](https://github.com/libreshard/libreshard) con más de 170 acciones del juego
 en siete pestañas (vuelo, combate, minería, salvamento, a pie, social y vehículos), con el estilo de
